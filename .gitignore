@@ -1,0 +1,15 @@
+node_modules/
+.wxt/
+.output/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.py[cod]
+.DS_Store
