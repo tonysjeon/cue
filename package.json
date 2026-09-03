@@ -1,0 +1,30 @@
+{
+  "name": "cue",
+  "private": true,
+  "workspaces": [
+    "apps/extension",
+    "packages/shared"
+  ],
+  "scripts": {
+    "build": "npm run build -w @cue/extension",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "dev:api": "cd apps/api && uv run uvicorn main:app --reload",
+    "dev:extension": "npm run dev -w @cue/extension",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . && cd apps/api && uv run ruff check .",
+    "setup:api": "cd apps/api && uv sync",
+    "test": "cd apps/api && uv run pytest",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@eslint/js": "latest",
+    "eslint": "latest",
+    "globals": "latest",
+    "prettier": "latest",
+    "typescript-eslint": "latest"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
