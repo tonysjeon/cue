@@ -29,6 +29,40 @@ function CollapseIcon() {
   );
 }
 
+function PauseIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 16 16">
+      <path
+        d="M5 3.25h1.75v9.5H5zM9.25 3.25H11v9.5H9.25z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function PlayIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 16 16">
+      <path d="M5.25 3.4v9.2L13 8.05 5.25 3.4Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function StopIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 16 16">
+      <rect
+        fill="currentColor"
+        height="8"
+        rx="1.5"
+        width="8"
+        x="4"
+        y="4"
+      />
+    </svg>
+  );
+}
+
 function CueMark() {
   return (
     <span aria-hidden="true" className="cue-mark">
@@ -60,7 +94,8 @@ export function InterviewOverlay() {
   const session = useInterviewSession();
   const showEventLog = import.meta.env.COMMAND === 'serve';
   const detected = detection.status === 'ready';
-  const live = session.state.status === 'live';
+  const liveSession = session.state.status === 'live' ? session.state : null;
+  const live = liveSession !== null;
   const starting = session.state.status === 'starting';
   const ending = session.state.status === 'ending';
   const ended = session.state.status === 'ended';
@@ -88,7 +123,13 @@ export function InterviewOverlay() {
     const observer = new ResizeObserver(updateHeight);
     observer.observe(content);
     return () => observer.disconnect();
-  }, [collapsed, detected, executionEvents.length > 0, session.state.status]);
+  }, [
+    collapsed,
+    detected,
+    executionEvents.length > 0,
+    session.state.status,
+    liveSession?.paused,
+  ]);
 
   useLayoutEffect(() => {
     const list = eventsRef.current;
@@ -112,7 +153,15 @@ export function InterviewOverlay() {
             <CueMark />
             <div className="cue-collapsible-content">
               <h1>Cue</h1>
-              <p>{ended ? 'Interview complete' : 'Mock interview'}</p>
+              <p>
+                {live && !liveSession.paused
+                  ? 'Live'
+                  : liveSession?.paused
+                    ? 'Paused'
+                    : ended
+                      ? 'Interview complete'
+                      : 'Mock interview'}
+              </p>
             </div>
           </div>
           <button
@@ -125,94 +174,79 @@ export function InterviewOverlay() {
           </button>
         </header>
 
-        <section className="cue-section cue-collapsible-content">
-          <h2>Current problem</h2>
-          <dl className="cue-details">
-            <div>
-              <dt>Problem</dt>
-              <dd>
-                <span
-                  className={
-                    detected
-                      ? 'cue-status-dot cue-status-dot-ready'
-                      : 'cue-status-dot'
-                  }
-                />
-                {problemName}
-              </dd>
-            </div>
-            <div>
-              <dt>Language</dt>
-              <dd className={detected ? undefined : 'cue-empty'}>{language}</dd>
-            </div>
-            <div>
-              <dt>Session</dt>
-              <dd>
-                <span
-                  className={
-                    live
-                      ? 'cue-status-dot cue-status-dot-ready'
-                      : ended
-                        ? 'cue-status-dot cue-status-dot-complete'
+        {!live && !ending && (
+          <section className="cue-section cue-collapsible-content">
+            <h2>Current problem</h2>
+            <dl className="cue-details">
+              <div>
+                <dt>Problem</dt>
+                <dd>
+                  <span
+                    className={
+                      detected
+                        ? 'cue-status-dot cue-status-dot-ready'
                         : 'cue-status-dot'
-                  }
-                />
-                {live
-                  ? 'Live'
-                  : ending
-                    ? 'Ending'
-                    : ended
-                      ? 'Complete'
-                      : starting
-                        ? 'Starting'
-                        : session.state.status === 'error'
-                          ? 'Error'
-                          : 'Idle'}
-              </dd>
-            </div>
-          </dl>
-        </section>
+                    }
+                  />
+                  {problemName}
+                </dd>
+              </div>
+              <div>
+                <dt>Language</dt>
+                <dd className={detected ? undefined : 'cue-empty'}>
+                  {language}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        )}
 
-        {showEventLog && (
+        {showEventLog && executionEvents.length > 0 && (
           <section className="cue-section cue-collapsible-content">
             <h2>Execution events</h2>
-            {executionEvents.length === 0 ? (
-              <p className="cue-note cue-event-empty">
-                Run or submit on NeetCode to verify detection
-              </p>
-            ) : (
-              <ol className="cue-events" ref={eventsRef}>
-                {executionEvents.map((event) => (
-                  <li key={`${event.type}-${event.timestamp}`}>
-                    <span className="cue-event-type">
-                      {event.type === 'run' ? 'Run' : 'Submit'}
-                    </span>
-                    <span
-                      className={`cue-event-result cue-event-result-${event.result}`}
-                    >
-                      {event.result}
-                    </span>
-                    <time dateTime={new Date(event.timestamp).toISOString()}>
-                      {formatEventTime(event.timestamp, now)}
-                    </time>
-                  </li>
-                ))}
-              </ol>
-            )}
+            <ol className="cue-events" ref={eventsRef}>
+              {executionEvents.map((event) => (
+                <li key={`${event.type}-${event.timestamp}`}>
+                  <span className="cue-event-type">
+                    {event.type === 'run' ? 'Run' : 'Submit'}
+                  </span>
+                  <span
+                    className={`cue-event-result cue-event-result-${event.result}`}
+                  >
+                    {event.result}
+                  </span>
+                  <time dateTime={new Date(event.timestamp).toISOString()}>
+                    {formatEventTime(event.timestamp, now)}
+                  </time>
+                </li>
+              ))}
+            </ol>
           </section>
         )}
 
         {live || ending ? (
-          <button
-            className="cue-primary cue-danger cue-collapsible-content"
-            disabled={ending}
-            onClick={() => {
-              void session.end();
-            }}
-            type="button"
-          >
-            {ending ? 'Ending…' : 'End interview'}
-          </button>
+          <div className="cue-controls cue-collapsible-content">
+            <button
+              aria-label={liveSession?.paused ? 'Resume' : 'Pause'}
+              className="cue-icon-button cue-control-button"
+              disabled={ending}
+              onClick={() => session.togglePause()}
+              type="button"
+            >
+              {liveSession?.paused ? <PlayIcon /> : <PauseIcon />}
+            </button>
+            <button
+              aria-label="End interview"
+              className="cue-icon-button cue-control-button cue-control-end"
+              disabled={ending}
+              onClick={() => {
+                void session.end();
+              }}
+              type="button"
+            >
+              <StopIcon />
+            </button>
+          </div>
         ) : (
           <button
             className="cue-primary cue-collapsible-content"
