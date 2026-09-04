@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useExecutionEvents } from '../hooks/useExecutionEvents';
 import { useProblemContext } from '../hooks/useProblemContext';
 import './InterviewOverlay.css';
 
@@ -41,16 +42,35 @@ type PanelStyle = CSSProperties & {
   '--cue-expanded-height'?: string;
 };
 
+function formatEventTime(timestamp: number, now: number): string {
+  const minutes = Math.floor(Math.max(0, now - timestamp) / 60_000);
+  if (minutes < 1) return 'Just now';
+  return `${minutes}m`;
+}
+
 export function InterviewOverlay() {
   const [collapsed, setCollapsed] = useState(false);
   const [expandedHeight, setExpandedHeight] = useState<number>();
+  const [now, setNow] = useState(() => Date.now());
   const contentRef = useRef<HTMLDivElement>(null);
+  const eventsRef = useRef<HTMLOListElement>(null);
   const detection = useProblemContext();
+  const executionEvents = useExecutionEvents();
+  const showEventLog = import.meta.env.COMMAND === 'serve';
   const detected = detection.status === 'ready';
   const problemName = detected
     ? detection.problem.title
     : 'Waiting for NeetCode';
   const language = detected ? detection.problem.language : 'Not detected';
+
+  useEffect(() => {
+    setNow(Date.now());
+  }, [executionEvents]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 10_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useLayoutEffect(() => {
     if (collapsed || !contentRef.current) return;
@@ -62,7 +82,13 @@ export function InterviewOverlay() {
     const observer = new ResizeObserver(updateHeight);
     observer.observe(content);
     return () => observer.disconnect();
-  }, [collapsed, detected]);
+  }, [collapsed, detected, executionEvents.length > 0]);
+
+  useLayoutEffect(() => {
+    const list = eventsRef.current;
+    if (!list) return;
+    list.scrollTop = 0;
+  }, [executionEvents]);
 
   const style: PanelStyle | undefined = expandedHeight
     ? { '--cue-expanded-height': `${expandedHeight}px` }
@@ -115,6 +141,35 @@ export function InterviewOverlay() {
             </div>
           </dl>
         </section>
+
+        {showEventLog && (
+          <section className="cue-section cue-collapsible-content">
+            <h2>Execution events</h2>
+            {executionEvents.length === 0 ? (
+              <p className="cue-note cue-event-empty">
+                Run or submit on NeetCode to verify detection
+              </p>
+            ) : (
+              <ol className="cue-events" ref={eventsRef}>
+                {executionEvents.map((event) => (
+                  <li key={`${event.type}-${event.timestamp}`}>
+                    <span className="cue-event-type">
+                      {event.type === 'run' ? 'Run' : 'Submit'}
+                    </span>
+                    <span
+                      className={`cue-event-result cue-event-result-${event.result}`}
+                    >
+                      {event.result}
+                    </span>
+                    <time dateTime={new Date(event.timestamp).toISOString()}>
+                      {formatEventTime(event.timestamp, now)}
+                    </time>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+        )}
 
         <button
           className="cue-primary cue-collapsible-content"
