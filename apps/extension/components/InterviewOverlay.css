@@ -241,10 +241,6 @@
   background: var(--cue-green);
 }
 
-.cue-status-dot-complete {
-  background: rgb(235 235 245 / 45%);
-}
-
 .cue-primary {
   width: 100%;
   height: 44px;
@@ -278,6 +274,42 @@
   background: var(--cue-red);
 }
 
+.cue-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+  gap: 12px;
+}
+
+.cue-control-button {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  color: var(--cue-label);
+  border-radius: 50%;
+}
+
+.cue-control-button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.cue-control-end:not(:disabled) {
+  color: #fff;
+  background: var(--cue-red);
+}
+
+.cue-control-end:not(:disabled):hover {
+  color: #fff;
+  background: #ff6961;
+}
+
+.cue-control-button:disabled {
+  color: rgb(235 235 245 / 30%);
+  background: rgb(118 118 128 / 24%);
+  opacity: 1;
+}
+
 .cue-note {
   margin: 8px 0 1px;
   color: var(--cue-tertiary);
@@ -286,30 +318,17 @@
   text-align: center;
 }
 
-.cue-event-empty,
 .cue-events {
   --cue-event-row: 44px;
   margin: 0;
-  background: rgb(44 44 46 / 90%);
-  border: 0.5px solid rgb(255 255 255 / 5%);
-  border-radius: 12px;
-}
-
-.cue-event-empty {
-  display: flex;
-  align-items: center;
-  min-height: var(--cue-event-row);
-  padding: 0 14px;
-  overflow: hidden;
-  text-align: left;
-}
-
-.cue-events {
   max-height: calc(var(--cue-event-row) * 3);
   padding: 0 2px 0 0;
   overflow-x: hidden;
   overflow-y: auto;
   list-style: none;
+  background: rgb(44 44 46 / 90%);
+  border: 0.5px solid rgb(255 255 255 / 5%);
+  border-radius: 12px;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgb(255 255 255 / 18%) transparent;
