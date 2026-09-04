@@ -8,9 +8,12 @@ export interface ProblemContext {
   code: string;
 }
 
+export type ExecutionResult =
+  'PASSED' | 'WRONG_ANSWER' | 'RUNTIME_ERROR' | 'TIME_LIMIT' | 'UNKNOWN';
+
 export type SessionEvent =
   | { type: 'speech'; timestamp: number; transcript: string }
   | { type: 'code'; timestamp: number; code: string }
-  | { type: 'run'; timestamp: number; result: string }
-  | { type: 'submission'; timestamp: number; result: string }
+  | { type: 'run'; timestamp: number; result: ExecutionResult }
+  | { type: 'submission'; timestamp: number; result: ExecutionResult }
   | { type: 'interviewer'; timestamp: number; message: string };
