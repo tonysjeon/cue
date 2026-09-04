@@ -6,6 +6,10 @@ export default defineConfig({
     name: 'Cue',
     description: 'A live technical interviewer for NeetCode.',
     permissions: ['storage'],
-    host_permissions: ['https://neetcode.io/*'],
+    host_permissions: [
+      'https://neetcode.io/*',
+      'http://localhost:8000/*',
+      'http://127.0.0.1:8000/*',
+    ],
   },
 });

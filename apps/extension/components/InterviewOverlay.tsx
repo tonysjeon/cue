@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useExecutionEvents } from '../hooks/useExecutionEvents';
+import { useInterviewSession } from '../hooks/useInterviewSession';
 import { useProblemContext } from '../hooks/useProblemContext';
 import './InterviewOverlay.css';
 
@@ -56,8 +57,13 @@ export function InterviewOverlay() {
   const eventsRef = useRef<HTMLOListElement>(null);
   const detection = useProblemContext();
   const executionEvents = useExecutionEvents();
+  const session = useInterviewSession();
   const showEventLog = import.meta.env.COMMAND === 'serve';
   const detected = detection.status === 'ready';
+  const live = session.state.status === 'live';
+  const starting = session.state.status === 'starting';
+  const ending = session.state.status === 'ending';
+  const ended = session.state.status === 'ended';
   const problemName = detected
     ? detection.problem.title
     : 'Waiting for NeetCode';
@@ -82,7 +88,7 @@ export function InterviewOverlay() {
     const observer = new ResizeObserver(updateHeight);
     observer.observe(content);
     return () => observer.disconnect();
-  }, [collapsed, detected, executionEvents.length > 0]);
+  }, [collapsed, detected, executionEvents.length > 0, session.state.status]);
 
   useLayoutEffect(() => {
     const list = eventsRef.current;
@@ -106,7 +112,7 @@ export function InterviewOverlay() {
             <CueMark />
             <div className="cue-collapsible-content">
               <h1>Cue</h1>
-              <p>Mock interview</p>
+              <p>{ended ? 'Interview complete' : 'Mock interview'}</p>
             </div>
           </div>
           <button
@@ -138,6 +144,31 @@ export function InterviewOverlay() {
             <div>
               <dt>Language</dt>
               <dd className={detected ? undefined : 'cue-empty'}>{language}</dd>
+            </div>
+            <div>
+              <dt>Session</dt>
+              <dd>
+                <span
+                  className={
+                    live
+                      ? 'cue-status-dot cue-status-dot-ready'
+                      : ended
+                        ? 'cue-status-dot cue-status-dot-complete'
+                        : 'cue-status-dot'
+                  }
+                />
+                {live
+                  ? 'Live'
+                  : ending
+                    ? 'Ending'
+                    : ended
+                      ? 'Complete'
+                      : starting
+                        ? 'Starting'
+                        : session.state.status === 'error'
+                          ? 'Error'
+                          : 'Idle'}
+              </dd>
             </div>
           </dl>
         </section>
@@ -171,16 +202,38 @@ export function InterviewOverlay() {
           </section>
         )}
 
-        <button
-          className="cue-primary cue-collapsible-content"
-          disabled={!detected}
-          type="button"
-        >
-          Start interview
-        </button>
+        {live || ending ? (
+          <button
+            className="cue-primary cue-danger cue-collapsible-content"
+            disabled={ending}
+            onClick={() => {
+              void session.end();
+            }}
+            type="button"
+          >
+            {ending ? 'Ending…' : 'End interview'}
+          </button>
+        ) : (
+          <button
+            className="cue-primary cue-collapsible-content"
+            disabled={!detected || starting}
+            onClick={() => {
+              if (detection.status !== 'ready') return;
+              void session.start(detection.problem);
+            }}
+            type="button"
+          >
+            {starting ? 'Starting…' : 'Start interview'}
+          </button>
+        )}
         {!detected && (
           <p className="cue-note cue-collapsible-content">
             Available once a problem is detected
+          </p>
+        )}
+        {session.state.status === 'error' && (
+          <p className="cue-note cue-collapsible-content">
+            {session.state.message}
           </p>
         )}
       </div>

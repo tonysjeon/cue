@@ -1,6 +1,7 @@
 .cue-panel {
   --cue-blue: #0a84ff;
   --cue-green: #30d158;
+  --cue-red: #ff453a;
   --cue-label: #fff;
   --cue-secondary: rgb(235 235 245 / 60%);
   --cue-tertiary: rgb(235 235 245 / 30%);
@@ -240,6 +241,10 @@
   background: var(--cue-green);
 }
 
+.cue-status-dot-complete {
+  background: rgb(235 235 245 / 45%);
+}
+
 .cue-primary {
   width: 100%;
   height: 44px;
@@ -267,6 +272,10 @@
   color: rgb(235 235 245 / 30%);
   background: rgb(118 118 128 / 24%);
   cursor: not-allowed;
+}
+
+.cue-danger:not(:disabled) {
+  background: var(--cue-red);
 }
 
 .cue-note {
