@@ -1,5 +1,4 @@
-.cue-panel,
-.cue-launcher {
+.cue-panel {
   --cue-blue: #0a84ff;
   --cue-green: #30d158;
   --cue-label: #fff;
@@ -19,14 +18,14 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.cue-panel *,
-.cue-launcher * {
+.cue-panel * {
   box-sizing: border-box;
 }
 
 .cue-panel {
-  width: min(324px, calc(100vw - 32px));
-  padding: 16px;
+  width: min(308px, calc(100vw - 32px));
+  height: var(--cue-expanded-height, auto);
+  padding: 14px;
   overflow: hidden;
   color: var(--cue-label);
   background: rgb(28 28 30 / 92%);
@@ -36,20 +35,46 @@
     0 24px 64px rgb(0 0 0 / 44%),
     inset 0 0.5px rgb(255 255 255 / 12%);
   backdrop-filter: saturate(180%) blur(28px);
+  transition:
+    width 260ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 260ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 260ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 260ms ease;
+}
+
+.cue-content {
+  width: min(279px, calc(100vw - 61px));
+}
+
+.cue-panel-collapsed {
+  width: 69px;
+  height: 69px;
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgb(0 0 0 / 36%);
+}
+
+.cue-collapsible-content {
+  opacity: 1;
+  transition: opacity 120ms ease 90ms;
+}
+
+.cue-panel-collapsed .cue-collapsible-content {
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: 0ms;
 }
 
 .cue-header,
 .cue-identity,
 .cue-details div,
-.cue-primary,
-.cue-launcher {
+.cue-primary {
   display: flex;
   align-items: center;
 }
 
 .cue-header {
   justify-content: space-between;
-  min-height: 44px;
+  min-height: 40px;
 }
 
 .cue-identity {
@@ -130,20 +155,23 @@
   transform: scale(0.94);
 }
 
-.cue-icon-button svg,
-.cue-launcher svg {
+.cue-icon-button:disabled {
+  pointer-events: none;
+}
+
+.cue-icon-button svg {
   width: 15px;
   height: 15px;
 }
 
 .cue-icon-button:focus-visible,
-.cue-launcher:focus-visible {
+.cue-open-button:focus-visible {
   outline: 3px solid rgb(10 132 255 / 45%);
   outline-offset: 2px;
 }
 
 .cue-section {
-  margin-top: 21px;
+  margin-top: 18px;
 }
 
 .cue-section h2 {
@@ -200,7 +228,7 @@
   color: var(--cue-tertiary);
 }
 
-.cue-waiting-dot {
+.cue-status-dot {
   width: 6px;
   height: 6px;
   flex: none;
@@ -208,11 +236,15 @@
   border-radius: 50%;
 }
 
+.cue-status-dot-ready {
+  background: var(--cue-green);
+}
+
 .cue-primary {
   width: 100%;
   height: 44px;
   justify-content: center;
-  margin-top: 18px;
+  margin-top: 16px;
   color: #fff;
   background: var(--cue-blue);
   border: 0;
@@ -245,84 +277,43 @@
   text-align: center;
 }
 
-.cue-launcher {
-  gap: 10px;
-  padding: 9px;
-  color: var(--cue-label);
-  background: rgb(28 28 30 / 92%);
-  border: 0.5px solid rgb(255 255 255 / 14%);
-  border-radius: 14px;
-  box-shadow: 0 12px 36px rgb(0 0 0 / 36%);
-  backdrop-filter: saturate(180%) blur(24px);
+.cue-open-button {
+  position: absolute;
+  inset: 0;
+  display: none;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.cue-launcher .cue-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  box-shadow: none;
+.cue-panel-collapsed:hover {
+  border-color: rgb(255 255 255 / 24%);
 }
 
-.cue-launcher .cue-mark i {
-  width: 2px;
-  height: 9px;
+.cue-panel-collapsed:hover .cue-mark {
+  filter: brightness(1.08);
 }
 
-.cue-launcher .cue-mark i:first-child {
-  height: 5px;
+.cue-panel-collapsed:active {
+  opacity: 0.8;
 }
 
-.cue-launcher .cue-mark i:last-child {
-  height: 13px;
+.cue-panel-collapsed .cue-open-button {
+  display: block;
 }
 
-.cue-launcher-copy {
-  display: grid;
-  width: 68px;
-}
-
-.cue-launcher-label,
-.cue-launcher-action {
-  grid-area: 1 / 1;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  text-align: left;
-  transition:
-    opacity 140ms ease,
-    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.cue-launcher-action {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  opacity: 0;
-  transform: translateY(4px);
-}
-
-.cue-launcher-action svg {
-  width: 14px;
-  height: 14px;
-  flex: none;
-  color: var(--cue-secondary);
-}
-
-.cue-launcher:hover .cue-launcher-label {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-
-.cue-launcher:hover .cue-launcher-action {
-  opacity: 1;
-  transform: translateY(0);
+@media (prefers-reduced-motion: reduce) {
+  .cue-panel,
+  .cue-collapsible-content {
+    transition: none;
+  }
 }
 
 @media (max-width: 640px) {
-  .cue-panel,
-  .cue-launcher {
+  .cue-panel {
     top: 72px;
     right: 16px;
   }
